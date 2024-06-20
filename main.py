@@ -23,10 +23,13 @@ class ConnectionManager:
                 await websocket.accept()
                 await websocket.close(
                     code=1008, reason="Server Disconnected, Please wait...")
+            print("Connected to: ", userId)
         else:
             if len(self.active_connections[self.nodeId]) <= 1 and userId != self.nodeId:
                 self.active_connections[userId].append(websocket)
                 await websocket.accept()
+                print(
+                    f"Connected to(x{len(self.active_connections[self.nodeId])}): ", userId)
             else:
                 await websocket.accept()
                 await websocket.close(
@@ -47,10 +50,10 @@ class ConnectionManager:
 
     async def broadcast(self, message: str, websocket: WebSocket, userId: str):
         if self.nodeId in self.active_connections:
-            await self.active_connections[self.nodeId][0].send_text(message)
             for connection in self.active_connections[userId]:
                 if not connection == websocket:
                     await connection.send_text(message)
+            await self.active_connections[self.nodeId][0].send_text(message)
         else:
             await websocket.send_text('Server Busy')
 
